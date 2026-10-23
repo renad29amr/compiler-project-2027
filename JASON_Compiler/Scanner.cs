@@ -82,6 +82,7 @@ namespace JASON_Compiler
         public void StartScanning(string SourceCode)
         {
             Tokens.Clear();
+            Errors.Error_List.Clear();
 
             for (int i = 0; i < SourceCode.Length; i++)
             {
@@ -167,7 +168,18 @@ namespace JASON_Compiler
                         FindTokenClass(SourceCode.Substring(i, 2));
                         i++;
                     }
-                    
+                    else if (!Operators.ContainsKey(CurrentLexeme) &&
+             i + 1 < SourceCode.Length &&
+             (char.IsLetterOrDigit(SourceCode[i + 1]) || SourceCode[i + 1] == '_'))
+                    {
+                        i++;
+                        while (i + 1 < SourceCode.Length &&
+                               (char.IsLetterOrDigit(SourceCode[i + 1]) || SourceCode[i + 1] == '_'))
+                        {
+                            i++;
+                        }
+                        FindTokenClass(SourceCode.Substring(j, i - j + 1));
+                    }
                     else if ("+-*/%!".IndexOf(CurrentChar) >= 0 &&
                              i + 1 < SourceCode.Length &&
                              (char.IsLetter(SourceCode[i + 1]) || SourceCode[i + 1] == '_') &&
@@ -229,7 +241,7 @@ namespace JASON_Compiler
 
             Token prev = Tokens[Tokens.Count - 1];
 
-            if (prev.token_type == Token_Class.Operator)       
+            if (Operators.ContainsKey(prev.lex))
                 return prev.lex != ")" && prev.lex != "]";     
 
             if (prev.token_type == Token_Class.Keyword)       
@@ -242,28 +254,30 @@ namespace JASON_Compiler
         {
             Token Tok = new Token();
             Tok.lex = Lex;
-
+            //Is it a reserved word?
             if (Keyword.IsMatch(Lex))
                 Tok.token_type = Token_Class.Keyword;
             else if (Type.IsMatch(Lex))
                 Tok.token_type = Token_Class.Type;
             else if (init.IsMatch(Lex))
                 Tok.token_type = (Lex == "init") ? Token_Class.Init : Token_Class.Length;
+            //Is it an identifier?
             else if (isIdentifier(Lex))
                 Tok.token_type = Token_Class.Identifier;
             else if (Float.IsMatch(Lex))
                 Tok.token_type = Token_Class.Float;
+            //Is it a Constant?
             else if (isConstant(Lex))
                 Tok.token_type = Token_Class.Int;
             else if (String.IsMatch(Lex))
                 Tok.token_type = Token_Class.String;
             else if (Char.IsMatch(Lex))
                 Tok.token_type = Token_Class.Char;
+            //Is it an operator?
             else if (Operators.ContainsKey(Lex))
                 Tok.token_type = Operators[Lex];
-            else if (Operators.ContainsKey(Lex))
-           Tok.token_type = Operators[Lex];
-       
+
+            //Is it an undefined?
             else
             {
                 Tok.token_type = Token_Class.Undefined;
@@ -275,11 +289,13 @@ namespace JASON_Compiler
 
 
 
+        // Check if the lex is an identifier or not.
         bool isIdentifier(string lex)
         {
             return Identifier.IsMatch(lex);
         }
 
+        // Check if the lex is a constant (Number) or not.
         bool isConstant(string lex)
         {
             return Int.IsMatch(lex);
