@@ -13,6 +13,7 @@ public enum Token_Class
     String, Char,
     Operator, Undefined,
     Plus, Minus, Multiply, Divide, Modulus,
+
     Assign,
     Equal, NotEqual, LessThan, GreaterThan, LessEqual, GreaterEqual,
     Range,
@@ -32,8 +33,13 @@ namespace JASON_Compiler
     {
 
         public List<Token> Tokens = new List<Token>();
-        Dictionary<string, Token_Class> ReservedWords = new Dictionary<string, Token_Class>();
+        
         Dictionary<string, Token_Class> Operators = new Dictionary<string, Token_Class>();
+        Regex WhiteSpace = new Regex(@"\G[ \t\r\n]+");
+        Regex LineComment = new Regex(@"\G//[^\n]*");
+        Regex BlockComment = new Regex(@"\G/\*([^*]|\*+[^*/])*\*+/");
+        //Regex OperatorRegex = new Regex(@"\G(==|!=|<=|>=|\.\.|\+|-|\*|/|%|=|<|>)");
+        //Regex Delimeters = new Regex(@"\G[(){}\[\],:.]");
         Regex Keyword = new Regex(
     @"^(var|val|fun|class|if|else|while|for|in|return|true|false|null|new|print|input|break|continue)$");
 
@@ -90,8 +96,27 @@ namespace JASON_Compiler
                 char CurrentChar = SourceCode[i];
                 string CurrentLexeme = CurrentChar.ToString();
 
-                if (CurrentChar == ' ' || CurrentChar == '\r' || CurrentChar == '\n')
+              
+                Match m;
+
+                // Read whitespace 
+                m = WhiteSpace.Match(SourceCode, i);
+                if (m.Success) { i += m.Length - 1; continue; }
+
+                // Read line comment  
+                m = LineComment.Match(SourceCode, i);
+                if (m.Success) { i += m.Length - 1; continue; }
+
+                // Read block comment  
+                m = BlockComment.Match(SourceCode, i);
+                if (m.Success) { i += m.Length - 1; continue; }
+
+                if (CurrentChar == '/' && i + 1 < SourceCode.Length && SourceCode[i + 1] == '*')
+                {
+                    FindTokenClass("/*");
+                    i++;
                     continue;
+                }
 
                 // Read words: keywords, types, identifiers, init, length
                 if (char.IsLetter(CurrentChar) || CurrentChar == '_')
