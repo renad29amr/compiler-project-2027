@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
 
@@ -50,7 +49,7 @@ namespace JASON_Compiler
             return root;
         }
 
-        
+
 
         bool Check(Token_Class expected)
         {
@@ -63,12 +62,6 @@ namespace JASON_Compiler
             return InputPointer < TokenStream.Count &&
                    TokenStream[InputPointer].token_type == Token_Class.Keyword &&
                    TokenStream[InputPointer].lex == keyword;
-        }
-
-        bool CheckLexeme(string lexeme)
-        {
-            return InputPointer < TokenStream.Count &&
-                   TokenStream[InputPointer].lex == lexeme;
         }
 
         string CurrentLexeme()
@@ -131,7 +124,7 @@ namespace JASON_Compiler
                 parent.Children.Add(child);
         }
 
-        
+
         // Program -> Declarations
 
         Node Program()
@@ -145,6 +138,8 @@ namespace JASON_Compiler
 
         Node Declarations()
         {
+            // write your code here to check atleast the declare sturcure 
+            // without adding procedures
             Node node = new Node("Declarations");
 
             while (InputPointer < TokenStream.Count)
@@ -465,7 +460,7 @@ namespace JASON_Compiler
             return node;
         }
 
-     
+
         // FunctionDecl -> FunctionHeader Block
 
         Node FunctionDecl()
@@ -583,6 +578,7 @@ namespace JASON_Compiler
 
         Node Block()
         {
+            // write your code here to match statements
             Node node = new Node("Block");
 
             Add(node, match(Token_Class.LBrace));
@@ -918,7 +914,7 @@ namespace JASON_Compiler
             return node;
         }
 
-   
+
 
         // Condition -> Expression ConditionTail
 
@@ -1020,7 +1016,7 @@ namespace JASON_Compiler
             return node;
         }
 
-   
+
         // FunctionCall -> identifier ( ArgumentList )
 
         Node FunctionCall()
@@ -1197,7 +1193,7 @@ namespace JASON_Compiler
             return node;
         }
 
-      
+
 
         Node PrintStatement()
         {
@@ -1222,7 +1218,7 @@ namespace JASON_Compiler
             return node;
         }
 
-        
+
         Node ParenthesizedExpression()
         {
             Node node = new Node("ParenthesizedExpression");
@@ -1315,7 +1311,7 @@ namespace JASON_Compiler
             return node;
         }
 
-   
+
         public static TreeNode PrintParseTree(Node root)
         {
             TreeNode tree = new TreeNode("Parse Tree");
@@ -1332,20 +1328,15 @@ namespace JASON_Compiler
         {
             if (root == null || root.Name == null)
                 return null;
-
             TreeNode tree = new TreeNode(root.Name);
-
+            if (root.Children.Count == 0)
+                return tree;
             foreach (Node child in root.Children)
             {
-                if (child != null)
-                {
-                    TreeNode childNode = PrintTree(child);
-
-                    if (childNode != null)
-                        tree.Nodes.Add(childNode);
-                }
+                if (child == null)
+                    continue;
+                tree.Nodes.Add(PrintTree(child));
             }
-
             return tree;
         }
     }
